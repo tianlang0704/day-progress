@@ -12,7 +12,7 @@
                   :size='280'
                   :width='40'
                   :value='progress'
-                  color='primary'
+                  :color='color'
                 )
                   strong.headline {{ progress }}%
                 p.mt-3 {{ timeLeft }}
