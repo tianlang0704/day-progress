@@ -29,8 +29,9 @@
                   strong {{ progress }}%
                   p {{ timeLeft }}
                   //- p now: {{ now.calendar() }}
-                  //- p 开始时间{{ startDay.calendar() }}
-                  //- p 结束时间{{ endDay.calendar() }}
+                  //- p 开始时间: {{ startDay.calendar() }}
+                  //- p 结束时间: {{ endDay.calendar() }}
+                  //- p 一天开始: {{ newDayBeginsDay.calendar() }}
                 v-col
                   v-btn(text, icon, color='grey', @click='dialog=true').float-right
                     v-icon {{ mdiCog }}
@@ -52,6 +53,7 @@
                     v-divider.my-2
                     .subheader 高级选项
                     TimePicker(v-model='newDayBegins', label='新一天开始时间')
+                    //- TimePicker(v-model='offWork', label='下班时间')
             v-card-actions
               v-spacer
               v-btn(color='primary', @click='save') 保存
@@ -75,6 +77,7 @@ export default {
       circular: localStorage.getItem('settings.circular') == 'true', //圆环进度条
       now: dayjs(), //dayjs().set('hour', 1).set('minute',0).set('second', 45), 
       newDayBegins: localStorage.getItem('settings.newDayBegins') || '6:00', //两天的分界线
+      offWork: localStorage.getItem('settings.offWork') || '20:00', //下班时间
       mdiCog,
       mdiClock,
       mdiClose
@@ -90,40 +93,51 @@ export default {
       return newDayBegins
     },
     endDay(){
-      let end = this.end.split(':').map(i=>parseInt(i))
-      end = this.now.set('hour', end[0]).set('minute', end[1]).set('second', 0)
-      if(end.isBefore(this.startDay)){
-        end = end.add(1, 'day')
-      }else if(this.now.isBefore(this.newDayBeginsDay)){
-        end = end.subtract(1, 'day')
+      let endStrArr = this.end.split(':').map(i=>parseInt(i))
+      let endDate = this.now.set('hour', endStrArr[0]).set('minute', endStrArr[1]).set('second', 0)
+      if (!this.now.isBefore(endDate) && this.now.isBefore(this.newDayBeginsDay)) {
+        endDate = endDate.add(1, 'day')
+      }else if(!this.now.isBefore(endDate) && endDate.isBefore(this.startDay)){
+        endDate = endDate.add(1, 'day')
       }
-      return end
+      return endDate
     },
     startDay(){
       let start = this.start.split(':').map(i=>parseInt(i))
       start = this.now.set('hour', start[0]).set('minute', start[1]).set('second', 0)
-      if(this.now.isBefore(this.newDayBeginsDay)){ //在新一天分界线之前，算前一天。
-        start = start.subtract(1, 'day')
-      }
       return start
     },
 
     timeLeft(){
-      let res = this.now.to(this.endDay)
-      return res.substr(0, res.length - 1)
+      let timeLeft
+      let lastEndDay = this.endDay.subtract(1, "day")
+      if (!this.now.isBefore(lastEndDay) && this.now.isBefore(this.startDay)) {
+        timeLeft = this.now.to(lastEndDay)
+      } else {
+        timeLeft = this.now.to(this.endDay)
+      }
+      return timeLeft.substr(0, timeLeft.length - 1)
     },
     progress(){
-      
-      let progress = (this.now.unix() - this.endDay.unix())/(this.startDay.unix() - this.endDay.unix())
+      // 更新颜色
+      if (!this.now.isBefore(this.endDay.subtract(1, "day")) && this.now.isBefore(this.newDayBeginsDay)) {
+        this.color = 'error'
+      } else {
+        this.color = 'primary'
+      }
+
+      // 更新进度
+      let progress
+      let lastEndDay = this.endDay.subtract(1, "day")
+      if (!this.now.isBefore(lastEndDay) && this.now.isBefore(this.startDay)) {
+        let lastEndDayUnix = lastEndDay.unix()
+        progress = Math.abs((this.now.unix() - lastEndDayUnix)/(lastEndDayUnix - this.endDay.unix()))
+      } else {
+        progress = Math.abs((this.now.unix() - this.endDay.unix())/(this.startDay.unix() - this.endDay.unix()))
+      }
       progress = progress*100
       progress = progress.toFixed(3)
-      if(progress < 0){
-        this.color = 'error'
-        return -progress
-      }else{
-        this.color = 'primary'
-        return progress
-      }
+      return progress
     }
   },
   methods:{
