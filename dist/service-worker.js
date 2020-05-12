@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/day-progress/precache-manifest.ebd50e6f34361eb2551540d14e1bb129.js"
+  "/day-progress/dist/precache-manifest.4aafe48e9326e0b0b16a5fd9e6bafadc.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "day-progress"});
