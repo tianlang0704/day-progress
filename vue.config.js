@@ -1,6 +1,6 @@
 module.exports = {
-  publicPath:'/day-progress/',
+  // publicPath:'/day-progress/',
   "transpileDependencies": [
     "vuetify"
-  ]
+  ],
 }
