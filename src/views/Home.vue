@@ -122,9 +122,6 @@ export default {
     lastEndRaw(){
       return this.endRaw.subtract(1, 'day')
     },
-    isEndBeforeStart(){
-      return this.endRaw.isBefore(this.startRaw)
-    },
     trueEnd(){
       if (this.isEndBeforeStart && !this.now.isBefore(this.endRaw)) {
         return this.endRaw.add(1, 'day')
@@ -133,6 +130,9 @@ export default {
     },
     trueLastEnd(){
       return this.trueEnd.subtract(1, 'day')
+    },
+    isEndBeforeStart(){
+      return this.endRaw.isBefore(this.startRaw)
     },
     timePastEnd(){
       let lastEnd
@@ -147,26 +147,33 @@ export default {
       return this.trueEnd.unix() - this.startRaw.unix()
     },
     isNowSleepTime(){
+      let end = this.endRaw
       let start
       if (this.isEndBeforeStart) {
         start = this.startRaw
       } else {
         start = this.startRaw.add(1, 'day')
       }
-      return !this.now.isBefore(this.endRaw) && this.now.isBefore(start)
+      if (this.now.isBefore(this.endRaw)) {
+        end = end.subtract(1, 'day')
+        start = start.subtract(1, 'day')
+      }
+      return !this.now.isBefore(end) && this.now.isBefore(start)
     },
     totalTimeToTargetStr(){
       let timeLeft
       if(this.isNowSleepTime) {
-        timeLeft = this.now.to(this.trueLastEnd)
+        let sleepTimePoint = this.now.subtract(this.timePastEnd, 'second')
+        timeLeft = this.now.to(sleepTimePoint)
       } else {
         timeLeft = this.now.to(this.trueEnd)
       }
       return timeLeft.substr(0, timeLeft.length - 1)
     },
     totalProgress(){
+      let dayBegin = this.newDayBeginsRaw.isBefore(this.startRaw) ? this.newDayBeginsRaw : this.newDayBeginsRaw.add(1, 'day')
       // 更新颜色
-      if (!this.now.isBefore(this.endRaw) && this.now.isBefore(this.newDayBeginsRaw)) {
+      if (this.isNowSleepTime && this.now.isBefore(dayBegin)) {
         this.color = 'error'
       } else {
         this.color = 'primary'
@@ -175,7 +182,7 @@ export default {
       // 更新进度
       let progress
       if (this.isNowSleepTime) {
-        progress = Math.abs(this.timePastEnd/(this.endRaw.unix() - this.startRaw.unix()))
+        progress = Math.abs(this.timePastEnd/(this.trueLastEnd.unix() - this.startRaw.unix()))
       } else {
         let deltaEnd = this.now.unix() - this.trueEnd.unix()
         let totalDuration = this.startRaw.unix() - this.trueEnd.unix()
