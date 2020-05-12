@@ -24,10 +24,14 @@
                     strong.headline
                       template(v-if='workHourProgressDisplay > 0') {{ workHourProgressDisplay }}%
                       p {{ totalProgress }}%
-                      
-                p.mt-3 {{ totalTimeToTargetStr }}
-                  v-btn(text, icon, color='grey', @click='dialog=true')
-                    v-icon {{ mdiCog }}
+                      v-btn(text, icon, color='grey', @click='dialog=true')
+                        v-icon {{ mdiCog }}
+                template(v-if='workTimeLeft > 0')
+                  p.mt-3 工作剩余 {{ totalWorkTimeLeft }}
+                template(v-if='isNowSleepTime')
+                  p.mt-3 睡眠经过 {{ totalTimeToTargetStr }}
+                template(v-else)
+                  p.mt-3 全天剩余 {{ totalTimeToTargetStr }}
 
             template(v-else)
               v-progress-linear(
@@ -39,10 +43,10 @@
                 v-col
                   strong {{ totalProgress }}%
                   p {{ totalTimeToTargetStr }}
-                  p now: {{ now.calendar() }}
-                  p 开始时间: {{ startRaw.calendar() }}
-                  p 结束时间: {{ endDayRaw.calendar() }}
-                  p 一天开始: {{ newDayBeginsRaw.calendar() }}
+                  //- p now: {{ now.calendar() }}
+                  //- p 开始时间: {{ startRaw.calendar() }}
+                  //- p 结束时间: {{ endDayRaw.calendar() }}
+                  //- p 一天开始: {{ newDayBeginsRaw.calendar() }}
                 v-col
                   v-btn(text, icon, color='grey', @click='dialog=true').float-right
                     v-icon {{ mdiCog }}
@@ -156,9 +160,9 @@ export default {
       if(this.isNowSleepTime) {
         timeLeft = this.now.to(this.trueLastEnd)
       } else {
-        timeLeft = this.now.to(this.endRaw)
+        timeLeft = this.now.to(this.trueEnd)
       }
-      return timeLeft.substr(0, timeLeft.length)
+      return timeLeft.substr(0, timeLeft.length - 1)
     },
     totalProgress(){
       // 更新颜色
@@ -178,7 +182,7 @@ export default {
         progress = Math.abs(deltaEnd/totalDuration)
       }
       progress = progress * 100
-      progress = progress.toFixed(3)
+      progress = progress.toFixed(2)
       return progress
     },
     endWorkRaw(){
@@ -232,8 +236,12 @@ export default {
       if(this.workProessSyncDay) {
         progress = progress * this.workHourPercentage
       }
-      progress = progress.toFixed(3)
+      progress = progress.toFixed(2)
       return progress
+    },
+    totalWorkTimeLeft(){
+      let timeLeft = this.now.to(this.trueWorkEnd)
+      return timeLeft.substr(0, timeLeft.length - 1)
     }
   },
   methods:{
