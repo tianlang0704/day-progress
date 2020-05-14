@@ -94,7 +94,7 @@ export default {
       now: dayjs(), //dayjs().set('hour', 1).set('minute',0).set('second', 45), 
       newDayBegins: localStorage.getItem('settings.newDayBegins') || '0:00', //两天的分界线
       offWork: localStorage.getItem('settings.offWork') || '19:00', //下班时间
-      workProessSyncDay: localStorage.getItem('settings.workProessSyncDay') == null ? true : localStorage.getItem('settings.workProessSyncDay'), //上班进度是否同步一天进度显示
+      workProessSyncDay: localStorage.getItem('settings.workProessSyncDay') || true, //上班进度是否同步一天进度显示
       mdiCog,
       mdiClock,
       mdiClose

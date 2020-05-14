@@ -1,9 +1,6 @@
 module.exports = {
-  // publicPath:'/',
-  "transpileDependencies": [ 
+  // publicPath:'/day-progress/',
+  "transpileDependencies": [
     "vuetify"
   ],
-  configureWebpack: {
-    devtool: 'source-map'
-  }
 }
